@@ -1,24 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Match } from '../decorator/match.decorator';
 
-export class RegisterUserDto {
+export class ResetPasswordDTO {
   @ApiProperty({
-    description: 'Full name of the user',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    description: 'Email address of the user',
-  })
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @ApiProperty({
-    description: 'Password (minimum 6 characters)',
+    description: 'New password (minimum 6 characters)',
     minLength: 6,
   })
   @IsString()

@@ -25,13 +25,15 @@ export class OutboxTask {
       };
       try {
         if (msg.event_type === EVENT_TYPE.VERIFY_EMAIL) {
-          const link = `api/v1/auth/verify-email?token=${token}`;
+          const link = `${this.config.get<string>('DOMAIN')}/api/v1/auth/verify-email?token=${token}`;
 
           await this.mailService.sendVerifyEmail(email, link);
         }
 
         if (msg.event_type === EVENT_TYPE.RESET_PASSWORD) {
-          return '';
+          const link = `${this.config.get<string>('DOMAIN')}/api/v1/auth/reset-password?token=${token}`;
+
+          await this.mailService.sendResetPassword(email, link);
         }
 
         await this.outboxRepo.updateStatus(msg.id, {

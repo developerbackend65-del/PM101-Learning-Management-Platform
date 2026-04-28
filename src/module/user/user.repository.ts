@@ -16,10 +16,28 @@ export class UserRepository {
     return client.user.create({ data });
   }
 
-  verify(id: string) {
-    return this.prisma.user.update({
+  verify(id: string, tx?: TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.user.update({
       where: { id },
       data: { is_verified: true },
+    });
+  }
+
+  updatePassword(id: string, password: string, tx?: TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.user.update({
+      where: { id },
+      data: { password_hash: password },
+    });
+  }
+
+  updateRefreshToken(id: string, refreshToken: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { refresh_token_hash: refreshToken },
     });
   }
 }

@@ -10,6 +10,7 @@ export class TokenRepository {
   findByToken(token: string) {
     return this.prisma.token.findUnique({
       where: { token },
+      include: { user: true },
     });
   }
 
@@ -18,8 +19,10 @@ export class TokenRepository {
     return client.token.create({ data });
   }
 
-  used(token: string) {
-    return this.prisma.token.update({
+  used(token: string, tx?: TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.token.update({
       where: { token },
       data: { used: true },
     });

@@ -36,6 +36,8 @@ model User {
   is_verified   Boolean  @default(false)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  
+  refresh_token_hash String?
 
   token Token[]
 

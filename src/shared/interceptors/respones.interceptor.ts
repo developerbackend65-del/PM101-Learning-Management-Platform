@@ -11,6 +11,7 @@ import { Observable } from 'rxjs';
 interface ControllerResponse {
   message?: string;
   data?: unknown;
+  meta?: unknown;
 }
 
 interface UnifiedResponse {
@@ -18,6 +19,7 @@ interface UnifiedResponse {
   status: number;
   message: string | null;
   data: unknown;
+  meta: unknown;
 }
 
 @Injectable()
@@ -43,6 +45,7 @@ export class ResponseInterceptor implements NestInterceptor<
           status: response.statusCode ?? HttpStatus.OK,
           message: data.message ?? null,
           data: data.data ?? null,
+          meta: data.meta ?? null,
         };
       }),
     );

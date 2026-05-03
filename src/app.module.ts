@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MailModule } from './shared/mail/mail.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { CourseModule } from './module/course/course.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     UserModule,
     AuthModule,
     MailModule,
+    CourseModule,
     SchedulerModule,
     ConfigModule.forRoot({
       isGlobal: true,

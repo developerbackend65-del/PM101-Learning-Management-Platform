@@ -28,6 +28,12 @@ enum STATUS_OUTBOX {
   SENT
   FAILED
 }
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
 model User {
   id            String   @id @default(uuid())
   name          String
@@ -45,6 +51,7 @@ model User {
 
   token Token[]
   courses Course[]
+  enrollments  Enrollment[]
 
   @@index([email])
   @@index([role])
@@ -96,6 +103,7 @@ model Course {
   admin   User?            @relation(fields: [adminId], references: [id], onDelete: SetNull)
   
   modules       CourseModule[]
+  enrollments  Enrollment[]
 
   @@index([adminId])
   @@index([level])
@@ -133,4 +141,27 @@ model Lesson {
   module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@index([moduleId])
+}
+
+model Enrollment {
+  id          String   @id @default(uuid())
+
+  studentId      String  
+  courseId    String   
+
+  status      EnrollmentStatus @default(ACTIVE)
+
+  progress    Int      @default(0)
+
+  enrolledAt  DateTime @default(now())
+
+  completedAt DateTime?
+
+  student         User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  course       Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+
+  @@map("enrollments")
 }

@@ -24,6 +24,15 @@ async function bootstrap() {
     .setDescription('API documentation')
     .setVersion('1.0')
     .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter your refresh token here',
+      },
+      'refreshToken',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

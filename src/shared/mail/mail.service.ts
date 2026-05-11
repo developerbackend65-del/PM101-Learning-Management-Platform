@@ -53,4 +53,27 @@ export class MailService {
 
     return sgMail.send(msg);
   }
+
+  /**
+   * Sends an restore account link to the specified email address.
+   *
+   * Uses a predefined SendGrid dynamic template, passing the verification
+   * link as template data.
+   *
+   * @param email - The recipient's email address.
+   * @param link - The verification URL to be embedded in the email template.
+   * @returns A promise that resolves with the SendGrid API response.
+   */
+  public sendRestoreAccount(email: string, link: string) {
+    const msg = {
+      to: email,
+      from: this.config.get<string>('SENDGRID_FROM_EMAIL')!,
+      templateId: this.config.get<string>('SENDGRID_RESTORE_TEMPLATE_ID')!,
+      dynamicTemplateData: {
+        link,
+      },
+    };
+
+    return sgMail.send(msg);
+  }
 }

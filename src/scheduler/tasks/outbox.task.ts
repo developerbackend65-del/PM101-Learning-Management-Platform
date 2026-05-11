@@ -36,6 +36,12 @@ export class OutboxTask {
           await this.mailService.sendResetPassword(email, link);
         }
 
+        if (msg.event_type === EVENT_TYPE.RESTORE_ACCOUNT) {
+          const link = `${this.config.get<string>('DOMAIN')}/api/v1/auth/restore/confirm?token=${token}`;
+
+          await this.mailService.sendRestoreAccount(email, link);
+        }
+
         await this.outboxRepo.updateStatus(msg.id, {
           status: STATUS_OUTBOX.SENT,
         });

@@ -19,6 +19,7 @@ import { JwtPayload } from 'src/shared/interfaces/jwt-payload.interface';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { StringValue } from 'ms';
+import { RequestRestoreDTO } from './dto/request-restore.dto';
 
 @Injectable()
 export class AuthService {
@@ -218,6 +219,7 @@ export class AuthService {
    *
    * @throws {UnauthorizedException} If the email does not exist or the password is incorrect.
    * @throws {BadRequestException}   If the user's email address has not been verified yet.
+   * @throws {BadRequestException}   If the user's account has been deleted/deactivated.
    *
    * @example
    * const tokens = await authService.login({ email: 'user@example.com', password: 'P@ssw0rd!' });
@@ -247,6 +249,12 @@ export class AuthService {
     if (!user.is_verified) {
       throw new BadRequestException(
         'Please verify your email before logging in',
+      );
+    }
+
+    if (user.isDeleted) {
+      throw new BadRequestException(
+        'This account has been deactivated. Please contact support.',
       );
     }
 
@@ -308,6 +316,129 @@ export class AuthService {
     return {
       message: 'Email verified successfully. You can now log in.',
     };
+  }
+
+  /**
+   * Refreshes an access token using a valid refresh token.
+   *
+   * @param {string} userId - The ID of the user requesting a token refresh.
+   * @param {string} refreshToken - The plaintext refresh token provided by the client.
+   *
+   * @returns {Promise<{ accessToken: string }>} A promise resolving to a new access token.
+   *
+   * @throws {UnauthorizedException} If the user is not found, has no stored
+   *   refresh token, or the provided token does not match the stored hash.
+   *
+   * @example
+   * const { accessToken } = await authService.refreshAccessToken(userId, refreshToken);
+   */
+  public async refreshAccessToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<{ accessToken: string }> {
+    const user = await this.userRepo.findById(userId);
+
+    if (!user || !user.refresh_token_hash) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const isValid = await this.compare(refreshToken, user.refresh_token_hash);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const accessToken = await this.jwtService.signAsync({
+      id: user.id,
+      role: user.role,
+    });
+
+    return { accessToken };
+  }
+
+  /**
+   * Initiates an account restore flow for the given email address.
+   *
+   * Generates a short-lived restore token, persists it alongside an outbox
+   * event (for async email dispatch), and always returns a generic message to
+   * prevent user-enumeration attacks.
+   *
+   * @param dto - Data transfer object containing the requester's email address.
+   * @returns A generic confirmation message regardless of whether the email exists.
+   *
+   *
+   * @example
+   * const result = await authService.requestRestore({ email: 'user@example.com' });
+   * // { message: 'If this email exists, we sent a reset link' }
+   */
+  public async requestRestore(
+    dto: RequestRestoreDTO,
+  ): Promise<{ message: string }> {
+    const { email } = dto;
+    const user = await this.userRepo.findByEmail(email);
+
+    if (user) {
+      const token = this.generateToken();
+
+      await this.transaction.run(async (tx) => {
+        await this.tokenRepo.create(
+          {
+            token,
+            user: { connect: { id: user.id } },
+            type: EVENT_TYPE.RESTORE_ACCOUNT,
+            expires_at: new Date(Date.now() + mintesToMilliseconds(10)),
+          },
+          tx,
+        );
+
+        await this.ouboxRepo.create(
+          {
+            payload: {
+              email,
+              token,
+            },
+            event_type: EVENT_TYPE.RESTORE_ACCOUNT,
+          },
+          tx,
+        );
+      });
+    }
+
+    return { message: 'If this email exists, we sent a reset link' };
+  }
+
+  /**
+   * Confirms an account restore request using a previously issued restore token.
+   *
+   * Validates the token's existence, type, and expiry before restoring the account
+   * and marking the token as used — all within a single atomic transaction.
+   *
+   * @param token - The restore token issued during {@link requestRestore}.
+   * @returns A confirmation message on successful account restoration.
+   *
+   * @throws {BadRequestException} If the token is not found, is of the wrong type,
+   * or has already expired.
+   *
+   * @example
+   * const result = await authService.confirmRestore('abc123token');
+   * // { message: 'Account restored successfully' }
+   */
+  public async confirmRestore(token: string): Promise<{ message: string }> {
+    const record = await this.tokenRepo.findByToken(token);
+
+    if (!record) {
+      throw new BadRequestException('Invalid token');
+    }
+
+    if (record.expires_at < new Date()) {
+      throw new BadRequestException('Token expired');
+    }
+
+    await this.transaction.run(async (tx) => {
+      await this.userRepo.restoreAccount(record.user.id, tx);
+      await this.tokenRepo.used(token, tx);
+    });
+
+    return { message: 'Account restored successfully' };
   }
 
   private generateToken() {

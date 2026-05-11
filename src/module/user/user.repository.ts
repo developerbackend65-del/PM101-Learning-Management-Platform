@@ -40,4 +40,21 @@ export class UserRepository {
       data: { refresh_token_hash: refreshToken },
     });
   }
+
+  findById(id: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  restoreAccount(id: string, tx?: TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.user.update({
+      where: { id },
+      data: { isDeleted: false, deleted_at: null },
+    });
+  }
 }

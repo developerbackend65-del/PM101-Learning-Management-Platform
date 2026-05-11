@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { StringValue } from 'ms';
 import { RequestRestoreDTO } from './dto/request-restore.dto';
+import { User } from 'generated/prisma/browser';
 
 @Injectable()
 export class AuthService {
@@ -227,7 +228,7 @@ export class AuthService {
    */
   public async login(
     dto: LoginDTO,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
     const { email, password } = dto;
 
     const FAKE_HASH = '$2b$10$abcdefghijklmnopqrstuv1234567890';
@@ -273,7 +274,7 @@ export class AuthService {
 
     await this.userRepo.updateRefreshToken(user.id, refresh_token_hash);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, user };
   }
 
   /**

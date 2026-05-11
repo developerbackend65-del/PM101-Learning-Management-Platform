@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../db/database.service';
+import {
+  Decimal,
+  TransactionClient,
+} from 'generated/prisma/internal/prismaNamespace';
 
 @Injectable()
 export class EnrollmentRepository {
@@ -42,6 +46,38 @@ export class EnrollmentRepository {
           studentId,
           courseId,
         },
+      },
+    });
+  }
+
+  async recalculateProgress(
+    enrollmentId: string,
+    courseId: string,
+    tx?: TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+
+    const [totalLessons, completedLessons] = await Promise.all([
+      this.prisma.lesson.count({
+        where: { module: { courseId } },
+      }),
+      this.prisma.lessonProgress.count({
+        where: { enrollmentId, isCompleted: true },
+      }),
+    ]);
+
+    const progress =
+      totalLessons === 0
+        ? new Decimal(0)
+        : new Decimal(completedLessons).div(totalLessons).toDecimalPlaces(3);
+
+    return client.enrollment.update({
+      where: { id: enrollmentId },
+      data: {
+        progress,
+        ...(progress.equals(1) && {
+          completedAt: new Date(),
+        }),
       },
     });
   }

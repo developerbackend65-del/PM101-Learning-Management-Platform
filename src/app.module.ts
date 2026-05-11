@@ -8,6 +8,10 @@ import { MailModule } from './shared/mail/mail.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { CourseModule } from './module/course/course.module';
 import { EnrollmentModule } from './module/enrollments/enrollment.module';
+import { LessonModule } from './module/lessons/lesson.module';
+import { LessonProgressModule } from './module/lessonProgress/lessonProgress.module';
+import { LearningPathItemModule } from './module/learningPathItems/learningPathItem.module';
+import { LearningPathModule } from './module/learningPaths/learningPath.module';
 
 @Module({
   imports: [
@@ -18,6 +22,10 @@ import { EnrollmentModule } from './module/enrollments/enrollment.module';
     CourseModule,
     EnrollmentModule,
     SchedulerModule,
+    LearningPathItemModule,
+    LearningPathModule,
+    LessonProgressModule,
+    LessonModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

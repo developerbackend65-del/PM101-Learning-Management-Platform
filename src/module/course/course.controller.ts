@@ -5,10 +5,20 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
-import { ApiQuery, ApiParam, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiQuery,
+  ApiParam,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('courses')
 export class CourseController {
   constructor(private courseService: CourseService) {}

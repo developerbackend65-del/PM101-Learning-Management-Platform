@@ -53,6 +53,8 @@ model User {
   courses Course[]
   enrollments  Enrollment[]
 
+  learningPath LearningPath[]
+
   @@index([email])
   @@index([role])
 }
@@ -105,6 +107,8 @@ model Course {
   modules       CourseModule[]
   enrollments  Enrollment[]
 
+  learningPaths LearningPathItem[]
+
   @@index([adminId])
   @@index([level])
 }
@@ -140,6 +144,8 @@ model Lesson {
   // Relations
   module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
+  progress LessonProgress[]
+
   @@index([moduleId])
 }
 
@@ -151,7 +157,7 @@ model Enrollment {
 
   status      EnrollmentStatus @default(ACTIVE)
 
-  progress    Int      @default(0)
+  progress  Decimal  @default(0)
 
   enrolledAt  DateTime @default(now())
 
@@ -161,7 +167,63 @@ model Enrollment {
 
   course       Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, courseId])
+  lessonProgress LessonProgress[]
 
-  @@map("enrollments")
+  @@unique([studentId, courseId])
+}
+
+model LessonProgress {
+  id            String   @id @default(uuid())
+
+  enrollmentId  String
+  lessonId      String
+
+  isCompleted   Boolean  @default(false)
+
+  watchedAt     DateTime?
+  completedAt   DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  lesson        Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+
+  @@index([enrollmentId])
+  @@index([lessonId])
+}
+
+model LearningPath {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+
+  createdBy   String?
+  creator     User?    @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  items       LearningPathItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LearningPathItem {
+  id          String   @id @default(uuid())
+
+  pathId      String
+  courseId    String
+
+  order    Int
+
+  path        LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([pathId, courseId])
+  @@index([pathId])
+  @@index([courseId])
 }

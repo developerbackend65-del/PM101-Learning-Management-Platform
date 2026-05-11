@@ -97,7 +97,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() data: LoginDTO,
   ) {
-    const { accessToken, refreshToken } = await this.authService.login(data);
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(data);
 
     res.cookie('refresh_token', refreshToken, this.getCookieOptions());
 
@@ -105,6 +106,7 @@ export class AuthController {
       message: 'Logged in successfully',
       data: {
         accessToken,
+        user,
       },
     };
   }

@@ -9,9 +9,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { StringValue } from 'ms';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
-  providers: [AuthService, TokenRepository, OutboxRepository, JwtStrategy],
+  providers: [
+    AuthService,
+    TokenRepository,
+    OutboxRepository,
+    JwtStrategy,
+    RefreshTokenStrategy,
+  ],
   controllers: [AuthController],
   imports: [
     JwtModule.registerAsync({

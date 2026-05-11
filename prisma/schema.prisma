@@ -20,6 +20,7 @@ enum UserRole {
 enum EVENT_TYPE {
   VERIFY_EMAIL
   RESET_PASSWORD
+  RESTORE_ACCOUNT
 }
 
 enum STATUS_OUTBOX {
@@ -37,6 +38,9 @@ model User {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   
+  isDeleted     Boolean   @default(false)
+  deleted_at    DateTime?
+
   refresh_token_hash String?
 
   token Token[]

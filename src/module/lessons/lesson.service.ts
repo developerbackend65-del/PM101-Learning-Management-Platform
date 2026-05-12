@@ -46,7 +46,7 @@ export class LessonService {
 
     await this.lessonProgressRepo.upsert(enrollment.id, lessonId);
 
-    return lesson;
+    return { data: lesson };
   }
 
   /**
@@ -99,7 +99,7 @@ export class LessonService {
         tx,
       );
 
-      return lesson;
+      return { data: lesson };
     });
   }
 }

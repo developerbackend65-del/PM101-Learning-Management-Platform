@@ -56,7 +56,7 @@ export class LessonController {
     @Param('lessonId') lessonId: string,
     @CurrentUser('id') studentId: string,
   ) {
-    return this.lessonService.findOne(courseId, lessonId, studentId);
+    return this.lessonService.findOne(lessonId, courseId, studentId);
   }
 
   @Post(':lessonId/completed')

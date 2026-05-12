@@ -139,11 +139,6 @@ export class AuthController {
   })
   @ApiOkResponse({
     description: 'Access token refreshed successfully.',
-    schema: {
-      example: {
-        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      },
-    },
   })
   @ApiUnauthorizedResponse({
     description: 'Invalid or expired refresh token.',

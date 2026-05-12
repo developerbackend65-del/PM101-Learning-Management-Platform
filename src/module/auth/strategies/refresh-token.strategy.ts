@@ -12,7 +12,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => req.cookies?.refreshToken ?? null,
+        (req: Request) => req.cookies?.refresh_token ?? null,
       ]),
       secretOrKey: process.env.JWT_REFRESH_SECRET!,
       ignoreExpiration: false,
@@ -21,7 +21,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   }
 
   validate(req: Request, payload: JwtPayload) {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refresh_token;
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');

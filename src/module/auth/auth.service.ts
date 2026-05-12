@@ -333,10 +333,7 @@ export class AuthService {
    * @example
    * const { accessToken } = await authService.refreshAccessToken(userId, refreshToken);
    */
-  public async refreshAccessToken(
-    userId: string,
-    refreshToken: string,
-  ): Promise<{ accessToken: string }> {
+  public async refreshAccessToken(userId: string, refreshToken: string) {
     const user = await this.userRepo.findById(userId);
 
     if (!user || !user.refresh_token_hash) {
@@ -353,7 +350,7 @@ export class AuthService {
       role: user.role,
     });
 
-    return { accessToken };
+    return { data: { accessToken } };
   }
 
   /**

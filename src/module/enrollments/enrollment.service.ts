@@ -30,10 +30,7 @@ export class EnrollmentService {
    * @example
    * const enrollment = await enrollmentService.createEnrollment('user-123', 'course-456');
    */
-  async createEnrollment(
-    userId: string,
-    courseId: string,
-  ): Promise<Enrollment> {
+  async createEnrollment(userId: string, courseId: string) {
     const course = await this.courseRepo.findById(courseId);
 
     if (!course) {
@@ -50,7 +47,8 @@ export class EnrollmentService {
       throw new BadRequestException('Student already enrolled in this course');
     }
 
-    return this.enrollmentRepo.create(userId, courseId);
+    const enrollment = await this.enrollmentRepo.create(userId, courseId);
+    return { data: enrollment };
   }
 
   /**

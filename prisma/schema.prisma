@@ -55,6 +55,7 @@ model User {
 
   learningPath LearningPath[]
 
+
   @@index([email])
   @@index([role])
 }
@@ -226,4 +227,6 @@ model LearningPathItem {
   @@unique([pathId, courseId])
   @@index([pathId])
   @@index([courseId])
+
+  @@map("enrollments")
 }

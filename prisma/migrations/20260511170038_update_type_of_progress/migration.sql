@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Enrollment" ALTER COLUMN "progress" SET DEFAULT 0,
+ALTER COLUMN "progress" SET DATA TYPE DECIMAL(65,30);

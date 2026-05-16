@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { LearningPathRepository } from './learningPath.repository';
 import { CreateLearningPathDto } from './dto/create-learnPath.dto';
 import { LearningPathItemRepository } from '../learningPathItems/learningPathItem.repository';
@@ -60,5 +64,71 @@ export class LearningPathService {
 
       return { message: 'Learning path created successfully' };
     });
+  }
+
+  /**
+   * Retrieves a paginated list of learning paths.
+   *
+   * @param page - Current page number (default: 1)
+   * @param limit - Number of items per page (default: 10)
+   * @returns Paginated learning paths with course count and estimated duration
+   */
+  async findAllPath(page: number = 1, limit: number = 10) {
+    const { paths, meta } = await this.learnPathRepo.findAll(page, limit);
+
+    const data = paths.map((path) => ({
+      id: path.id,
+      title: path.title,
+      description: path.description,
+      createdAt: path.createdAt,
+
+      courseCount: path._count.items,
+
+      estimatedDuration: path.items.reduce(
+        (sum, item) => sum + (item.course.duration || 0),
+        0,
+      ),
+    }));
+
+    return { data, meta };
+  }
+
+  /**
+   * Retrieves a single learning path by ID with enrollment status per course.
+   *
+   * @param pathId - The unique identifier of the learning path
+   * @param userId - The authenticated student's ID, used to resolve enrollment status
+   * @throws {NotFoundException} When no learning path matches the given `pathId`
+   * @returns Learning path detail with ordered courses and per-course enrollment flag
+   */
+  async findOne(pathId: string, userId: string) {
+    const path = await this.learnPathRepo.findById(pathId, userId);
+
+    if (!path) {
+      throw new NotFoundException('Learning path not found');
+    }
+
+    return {
+      data: {
+        id: path.id,
+        title: path.title,
+        description: path.description,
+        createdAt: path.createdAt,
+
+        courses: path.items.map((item) => ({
+          order: item.order,
+
+          id: item.course.id,
+          title: item.course.title,
+          description: item.course.description,
+          thumbnailUrl: item.course.thumbnailUrl,
+          duration: item.course.duration,
+          level: item.course.level,
+          price: item.course.price,
+
+          isEnrolled: item.course.enrollments.length > 0,
+        })),
+      },
+    };
   }
 }

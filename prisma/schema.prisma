@@ -228,5 +228,4 @@ model LearningPathItem {
   @@index([pathId])
   @@index([courseId])
 
-  @@map("enrollments")
 }

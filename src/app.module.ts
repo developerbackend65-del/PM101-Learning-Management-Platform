@@ -12,6 +12,9 @@ import { LessonModule } from './module/lessons/lesson.module';
 import { LessonProgressModule } from './module/lessonProgress/lessonProgress.module';
 import { LearningPathItemModule } from './module/learningPathItems/learningPathItem.module';
 import { LearningPathModule } from './module/learningPaths/learningPath.module';
+import { QuestionModule } from './module/questions/question.module';
+import { AssessmentModule } from './module/assessments/assessment.module';
+import { AssessmentSubmissionModule } from './module/assessmentSubmission/assessmentSubmission.module';
 
 @Module({
   imports: [
@@ -26,6 +29,9 @@ import { LearningPathModule } from './module/learningPaths/learningPath.module';
     LearningPathModule,
     LessonProgressModule,
     LessonModule,
+    QuestionModule,
+    AssessmentModule,
+    AssessmentSubmissionModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

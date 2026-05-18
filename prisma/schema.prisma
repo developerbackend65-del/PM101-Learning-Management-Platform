@@ -34,6 +34,12 @@ enum EnrollmentStatus {
   COMPLETED
   CANCELLED
 }
+
+enum QuestionType {
+  multiple_choice
+  true_false
+}
+
 model User {
   id            String   @id @default(uuid())
   name          String
@@ -49,12 +55,12 @@ model User {
 
   refresh_token_hash String?
 
-  token Token[]
-  courses Course[]
-  enrollments  Enrollment[]
+  token            Token[]
+  courses          Course[]
+  enrollments      Enrollment[]
 
-  learningPath LearningPath[]
-
+  learningPath     LearningPath[]
+  submissions      AssessmentSubmission[]
 
   @@index([email])
   @@index([role])
@@ -109,6 +115,7 @@ model Course {
   enrollments  Enrollment[]
 
   learningPaths LearningPathItem[]
+  assessment Assessment?
 
   @@index([adminId])
   @@index([level])
@@ -127,6 +134,8 @@ model CourseModule {
   // Relations
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
+
+  assessment Assessment?
 
   @@index([courseId])
 }
@@ -228,4 +237,66 @@ model LearningPathItem {
   @@index([pathId])
   @@index([courseId])
 
+}
+
+model Assessment {
+  id           String   @id @default(uuid())
+  courseId     String?  @unique
+  moduleId     String?  @unique
+  title        String   
+  passingScore Int      
+  timeLimit    Int?     
+  createdAt    DateTime @default(now()) 
+  updatedAt    DateTime @default(now()) 
+
+  course      Course?        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module      CourseModule?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  questions   Question[]
+  submissions AssessmentSubmission[]
+
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  assessmentId  String   
+  text          String
+  type          QuestionType @default(multiple_choice)
+  options       Json?
+  correctAnswer String   
+  createdAt     DateTime @default(now()) 
+  updatedAt     DateTime @default(now()) 
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  submissionAnswers SubmissionAnswer[]
+}
+
+model AssessmentSubmission {
+  id           String           @id @default(uuid())
+  userId       String           
+  assessmentId String           
+  score        Int
+  passed       Boolean
+  submittedAt  DateTime         @default(now()) 
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment   Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  answers      SubmissionAnswer[] 
+
+  @@index([userId])
+  @@index([assessmentId])
+}
+
+model SubmissionAnswer {
+  id           String   @id @default(uuid())
+  submissionId String   
+  questionId   String   
+  answer       String   
+  isCorrect    Boolean  
+
+  submission   AssessmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question     Question             @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@index([questionId])
 }

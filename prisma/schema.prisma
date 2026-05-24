@@ -50,6 +50,8 @@ model User {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   
+  lastActiveAt    DateTime?
+
   isDeleted     Boolean   @default(false)
   deleted_at    DateTime?
 
@@ -100,7 +102,7 @@ model Course {
   id            String   @id @default(uuid())
   title         String
   description   String?
-  adminId  String?
+  adminId       String?
   thumbnailUrl  String?
   duration      Int?
   level         String?

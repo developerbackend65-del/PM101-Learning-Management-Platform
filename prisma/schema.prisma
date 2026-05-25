@@ -23,6 +23,12 @@ enum EVENT_TYPE {
   RESTORE_ACCOUNT
 }
 
+enum USER_STATUS {
+  Active
+  Ban
+  Delete
+}
+
 enum STATUS_OUTBOX {
   PENDING
   SENT
@@ -52,9 +58,10 @@ model User {
   
   lastActiveAt    DateTime?
 
-  isDeleted     Boolean   @default(false)
+  status         USER_STATUS  @default(Active)
   deleted_at    DateTime?
-
+  bannedAt    DateTime?
+  
   refresh_token_hash String?
 
   token            Token[]

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../db/database.service';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma, USER_STATUS, UserRole } from 'generated/prisma/client';
 import { TransactionClient } from 'generated/prisma/internal/prismaNamespace';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class UserRepository {
 
     return client.user.update({
       where: { id },
-      data: { isDeleted: false, deleted_at: null },
+      data: { status: USER_STATUS.Active, deleted_at: null },
     });
   }
 
@@ -72,6 +72,113 @@ export class UserRepository {
         lastActiveAt: {
           gte: last30Days,
         },
+      },
+    });
+  }
+
+  async getUsers(
+    page: number = 1,
+    limit: number = 20,
+    search?: string,
+    role?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {
+      ...(role && { role: role.toUpperCase() as UserRole }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [total, users] = await Promise.all([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        omit: {
+          password_hash: true,
+          refresh_token_hash: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+      }),
+    ]);
+
+    return {
+      users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  getUser(userId: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      omit: {
+        password_hash: true,
+        refresh_token_hash: true,
+      },
+      include: {
+        enrollments: true,
+      },
+    });
+  }
+
+  banUser(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        status: USER_STATUS.Ban,
+        bannedAt: new Date(),
+      },
+      omit: {
+        password_hash: true,
+        refresh_token_hash: true,
+      },
+    });
+  }
+
+  unbanUser(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        status: USER_STATUS.Active,
+        bannedAt: null,
+      },
+      omit: {
+        password_hash: true,
+        refresh_token_hash: true,
+      },
+    });
+  }
+
+  deleteUser(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        status: USER_STATUS.Delete,
+        deleted_at: new Date(),
+      },
+    });
+  }
+
+  updateUser(id: string, data: Prisma.UserUpdateInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      omit: {
+        password_hash: true,
+        refresh_token_hash: true,
       },
     });
   }

@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CourseRepository } from '../course/course.repository';
 import { EnrollmentRepository } from '../enrollments/enrollment.repository';
 import { UserRepository } from '../user/user.repository';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { USER_STATUS } from 'generated/prisma/enums';
 
 @Injectable()
 export class AdminService {
@@ -123,5 +129,137 @@ export class AdminService {
     return {
       data: courses,
     };
+  }
+
+  /**
+   * Retrieves a paginated list of users with optional filtering.
+   *
+   * @param page    - Page number (1-based). Defaults to 1.
+   * @param limit   - Number of users per page. Defaults to 20.
+   * @param search  - Optional search term matched against name and email.
+   * @param role    - Optional role filter (e.g. 'admin', 'user').
+   * @returns Paginated user list with meta: total, page, limit, totalPages.
+   */
+  async allUsers(
+    page?: number,
+    limit?: number,
+    search?: string,
+    role?: string,
+  ) {
+    const { users, meta } = await this.userRepo.getUsers(
+      page,
+      limit,
+      search,
+      role,
+    );
+
+    return {
+      data: users,
+      meta,
+    };
+  }
+
+  /**
+   * Retrieves a single user by ID, including their enrollments.
+   *
+   * @param userId - The unique identifier of the user.
+   * @returns The user object wrapped in `{ data }`.
+   * @throws {NotFoundException} If no user with the given ID exists.
+   */
+  async getUser(userId: string) {
+    const user = await this.userRepo.getUser(userId);
+
+    return { data: user };
+  }
+
+  /**
+   * Updates an existing user's profile fields.
+   *
+   * @param id   - The unique identifier of the user to update.
+   * @param data - Partial user fields to update (see {@link UpdateUserDto}).
+   * @returns A success message and the updated user object.
+   * @throws {NotFoundException} If no user with the given ID exists.
+   */
+  async updateUser(id: string, data: UpdateUserDto) {
+    const user = await this.userRepo.updateUser(id, data);
+
+    return {
+      message: 'update successful',
+      data: user,
+    };
+  }
+
+  /**
+   * Bans a user, preventing them from accessing the platform.
+   *
+   * @param id - The unique identifier of the user to ban.
+   * @returns A success message on completion.
+   * @throws {NotFoundException}   If no user with the given ID exists.
+   * @throws {BadRequestException} If the user is already banned or is deleted.
+   */
+  async banUser(id: string) {
+    const user = await this.userRepo.findById(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with this ID not found`);
+    }
+
+    if (user.status === USER_STATUS.Ban) {
+      throw new BadRequestException('User is already banned');
+    }
+
+    if (user.status === USER_STATUS.Delete) {
+      throw new BadRequestException('Cannot ban a deleted user');
+    }
+
+    await this.userRepo.banUser(id);
+    return { message: 'User banned successfully' };
+  }
+
+  /**
+   * Lifts an existing ban, restoring the user's active status.
+   *
+   * @param id - The unique identifier of the user to unban.
+   * @returns A success message on completion.
+   * @throws {NotFoundException}   If no user with the given ID exists.
+   * @throws {BadRequestException} If the user is not currently banned.
+   */
+  async unbanUser(id: string) {
+    const user = await this.userRepo.getUser(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with this ID not found`);
+    }
+
+    if (user.status !== USER_STATUS.Ban) {
+      throw new BadRequestException('User is not banned');
+    }
+
+    await this.userRepo.unbanUser(id);
+    return { message: 'User unbanned successfully' };
+  }
+
+  /**
+   * Soft-deletes a user by marking their status as deleted.
+   * The record is retained in the database for audit purposes.
+   *
+   * @param id - The unique identifier of the user to delete.
+   * @returns A success message on completion.
+   * @throws {NotFoundException}   If no user with the given ID exists.
+   * @throws {BadRequestException} If the user is already deleted.
+   */
+  async deleteUser(id: string) {
+    const user = await this.userRepo.getUser(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with this ID not found`);
+    }
+
+    if (user.status === USER_STATUS.Delete) {
+      throw new BadRequestException('User is already deleted');
+    }
+
+    await this.userRepo.deleteUser(id);
+    return { message: 'User deleted successfully' };
   }
 }

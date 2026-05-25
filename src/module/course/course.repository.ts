@@ -56,9 +56,82 @@ export class CourseRepository {
         id,
       },
       include: {
+        assessment: true,
         modules: {
           include: {
+            assessment: true,
             lessons: true,
+          },
+        },
+      },
+    });
+  }
+
+  countAllCourses() {
+    return this.prisma.course.count();
+  }
+
+  async totalRevenue() {
+    const courses = await this.prisma.course.findMany({
+      select: {
+        price: true,
+        _count: {
+          select: {
+            enrollments: true,
+          },
+        },
+      },
+    });
+
+    return courses.reduce((sum, course) => {
+      return sum + Number(course.price) * course._count.enrollments;
+    }, 0);
+  }
+
+  async revenueOverTime(startDate?: string, endDate?: string) {
+    const courses = await this.prisma.course.findMany({
+      select: {
+        price: true,
+
+        _count: {
+          select: {
+            enrollments: {
+              where: {
+                enrolledAt: {
+                  gte: startDate ? new Date(startDate) : undefined,
+
+                  lte: endDate ? new Date(endDate) : undefined,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return courses.reduce((sum, course) => {
+      return sum + Number(course.price) * course._count.enrollments;
+    }, 0);
+  }
+
+  async popularCourses(limit: number = 10) {
+    return this.prisma.course.findMany({
+      take: Number(limit),
+
+      orderBy: {
+        enrollments: {
+          _count: 'desc',
+        },
+      },
+
+      select: {
+        id: true,
+        title: true,
+        price: true,
+
+        _count: {
+          select: {
+            enrollments: true,
           },
         },
       },

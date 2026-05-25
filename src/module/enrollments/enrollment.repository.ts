@@ -81,4 +81,20 @@ export class EnrollmentRepository {
       },
     });
   }
+
+  countAllEnrollments() {
+    return this.prisma.enrollment.count();
+  }
+
+  async enrollmentsOverTime(startDate?: string, endDate?: string) {
+    return this.prisma.enrollment.count({
+      where: {
+        enrolledAt: {
+          gte: startDate ? new Date(startDate) : undefined,
+
+          lte: endDate ? new Date(endDate) : undefined,
+        },
+      },
+    });
+  }
 }

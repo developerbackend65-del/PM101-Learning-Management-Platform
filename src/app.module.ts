@@ -15,6 +15,7 @@ import { LearningPathModule } from './module/learningPaths/learningPath.module';
 import { QuestionModule } from './module/questions/question.module';
 import { AssessmentModule } from './module/assessments/assessment.module';
 import { AssessmentSubmissionModule } from './module/assessmentSubmission/assessmentSubmission.module';
+import { AdminModule } from './module/admin/admin.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AssessmentSubmissionModule } from './module/assessmentSubmission/assess
     QuestionModule,
     AssessmentModule,
     AssessmentSubmissionModule,
+    AdminModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

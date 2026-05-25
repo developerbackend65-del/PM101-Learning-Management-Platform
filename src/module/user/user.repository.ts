@@ -37,7 +37,7 @@ export class UserRepository {
   updateRefreshToken(id: string, refreshToken: string) {
     return this.prisma.user.update({
       where: { id },
-      data: { refresh_token_hash: refreshToken },
+      data: { refresh_token_hash: refreshToken, lastActiveAt: new Date() },
     });
   }
 
@@ -55,6 +55,24 @@ export class UserRepository {
     return client.user.update({
       where: { id },
       data: { isDeleted: false, deleted_at: null },
+    });
+  }
+
+  countAllUsers() {
+    return this.prisma.user.count();
+  }
+
+  activeUserLast30Days() {
+    const last30Days = new Date();
+
+    last30Days.setDate(last30Days.getDate() - 30);
+
+    return this.prisma.user.count({
+      where: {
+        lastActiveAt: {
+          gte: last30Days,
+        },
+      },
     });
   }
 }

@@ -7,7 +7,7 @@ import { UserRepository } from '../user/user.repository';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { TokenRepository } from './repository/token.repository';
-import { EVENT_TYPE } from '../../../generated/prisma/enums';
+import { EVENT_TYPE, USER_STATUS } from '../../../generated/prisma/enums';
 import { mintesToMilliseconds } from 'src/shared/time/time.util';
 import { TransactionPort } from '../db/transaction/transaction.port';
 import { OutboxRepository } from './repository/outbox.repository';
@@ -253,10 +253,14 @@ export class AuthService {
       );
     }
 
-    if (user.isDeleted) {
+    if (user.status === USER_STATUS.Ban) {
       throw new BadRequestException(
-        'This account has been deactivated. Please contact support.',
+        'Your account has been suspended. Please contact support for assistance.',
       );
+    }
+
+    if (user.status === USER_STATUS.Delete) {
+      throw new BadRequestException('This account no longer exists.');
     }
 
     const payload: JwtPayload = { id: user.id, role: user.role };

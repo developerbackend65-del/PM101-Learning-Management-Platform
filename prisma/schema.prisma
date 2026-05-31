@@ -46,6 +46,17 @@ enum QuestionType {
   true_false
 }
 
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
 model User {
   id            String   @id @default(uuid())
   name          String
@@ -109,25 +120,44 @@ model Course {
   id            String   @id @default(uuid())
   title         String
   description   String?
-  adminId       String?
+  adminId       String
   thumbnailUrl  String?
+  thumbnailPublicId String?
   duration      Int?
-  level         String?
 
-  price         Decimal
+  level         CourseLevel?
+
+  price         Decimal @default(0)
+
+  categoryId    String?
+  status        CourseStatus @default(DRAFT)
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  admin   User?            @relation(fields: [adminId], references: [id], onDelete: SetNull)
-  
+  admin         User @relation(fields: [adminId], references: [id])
+
+  category      Category? @relation(fields: [categoryId], references: [id])
+
   modules       CourseModule[]
-  enrollments  Enrollment[]
+  enrollments   Enrollment[]
 
   learningPaths LearningPathItem[]
-  assessment Assessment?
+  assessment    Assessment?
 
   @@index([adminId])
   @@index([level])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  courses     Course[]
 }
 
 model CourseModule {

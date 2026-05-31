@@ -1,9 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CourseRepository } from './course.repository';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { CloudinaryService } from 'src/shared/cloudinary/cloudinary.service';
+import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Injectable()
 export class CourseService {
-  constructor(private courseRepo: CourseRepository) {}
+  constructor(
+    private courseRepo: CourseRepository,
+    private cloudinaryService: CloudinaryService,
+  ) {}
 
   /**
    * Retrieves a paginated list of courses with an optional search filter.
@@ -31,5 +41,83 @@ export class CourseService {
       throw new NotFoundException('no course found with this id');
     }
     return { data: course };
+  }
+
+  /**
+   * Creates a new course with an uploaded thumbnail image.
+   *
+   * @param dto - The data required to create a course.
+   * @param adminId - The ID of the admin creating the course.
+   * @param file - The thumbnail image file to upload to Cloudinary.
+   * @returns The created course with a success message.
+   * @throws {InternalServerErrorException} If the image upload to Cloudinary fails.
+   */
+  public async createCourse(dto: CreateCourseDto, adminId: string, file: any) {
+    let upload: { url: string; thumbnailPublicId: string };
+
+    try {
+      upload = await this.cloudinaryService.uploadImage(file);
+    } catch {
+      throw new InternalServerErrorException('Image upload failed');
+    }
+
+    const course = await this.courseRepo.create({
+      ...dto,
+      admin: { connect: { id: adminId } },
+      thumbnailUrl: upload.url,
+      thumbnailPublicId: upload.thumbnailPublicId,
+    });
+
+    return {
+      message: 'Course created successfully',
+      data: course,
+    };
+  }
+
+  /**
+   * Updates an existing course by ID, optionally replacing the thumbnail image.
+   *
+   * @param dto - The data to update the course with.
+   * @param adminId - The ID of the admin performing the update.
+   * @param courseId - The unique identifier of the course to update.
+   * @param file - Optional new thumbnail image file. If provided, the old thumbnail
+   *               is deleted from Cloudinary and replaced with the new one.
+   * @returns The updated course with a success message.
+   * @throws {NotFoundException} If no course is found matching the given courseId and adminId.
+   */
+  public async updateCourse(
+    dto: UpdateCourseDto,
+    adminId: string,
+    courseId: string,
+    file?: any,
+  ) {
+    const course = await this.courseRepo.findByIdAndAdminId(courseId, adminId);
+
+    if (!course) {
+      throw new NotFoundException('');
+    }
+
+    let thumbnailUrl = course.thumbnailUrl;
+    let thumbnailPublicId = course.thumbnailPublicId;
+
+    if (file) {
+      if (course.thumbnailPublicId) {
+        await this.cloudinaryService.deleteImage(course.thumbnailPublicId);
+      }
+      const uploaded = await this.cloudinaryService.uploadImage(file);
+      thumbnailUrl = uploaded.url;
+      thumbnailPublicId = uploaded.thumbnailPublicId;
+    }
+
+    const Ncourse = await this.courseRepo.update(courseId, {
+      ...dto,
+      thumbnailUrl,
+      thumbnailPublicId,
+    });
+
+    return {
+      message: 'Course updated successfully',
+      data: Ncourse,
+    };
   }
 }

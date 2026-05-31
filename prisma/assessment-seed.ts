@@ -8,13 +8,13 @@ const prisma = new PrismaClient({
 // ─────────────────────────────────────────────────────────────
 // 👇 REPLACE these with your real IDs from the database
 // ─────────────────────────────────────────────────────────────
-const COURSE_HTML_CSS_ID = '47d76458-918e-4913-8995-fc131261e934'; // HTML & CSS Fundamentals
-const COURSE_NODEJS_ID = '069a0650-3889-4e7c-9fdb-628a7ffa6587'; // Node.js Basics
+const COURSE_HTML_CSS_ID = 'f6a408e5-b401-4019-be90-2f7f102ead5f'; // HTML & CSS Fundamentals
+const COURSE_NODEJS_ID = '52f99b77-6bed-4ba4-81fa-abe753323085'; // Node.js Basics
 
-const MODULE_DOM_EVENTS_ID = 'd5498a81-1b81-4011-bb6a-edd525ffadd5'; // JS: DOM and Events
-const MODULE_NODEJS_INTRO_ID = 'ac3af37f-a351-420d-bc93-ea1fcf06eea6'; // Node: Node.js Introduction
-const MODULE_REACT_BASICS_ID = 'f222bf21-6968-4904-be9b-7ab7ec85c9cc'; // React: React Basics
-const MODULE_STATE_PROPS_ID = '5a7c30f3-af45-4355-b181-11e98896b175'; // React: State and Props
+const MODULE_DOM_EVENTS_ID = '7e85e69a-5ad3-4c1c-bd07-6a13ac94b329'; // JS: DOM and Events
+const MODULE_NODEJS_INTRO_ID = '4afda63c-621a-4f81-aece-cee4578b068a'; // Node: Node.js Introduction
+const MODULE_REACT_BASICS_ID = 'eb572e26-45fd-4315-8b96-b06233444cb8'; // React: React Basics
+const MODULE_STATE_PROPS_ID = 'ad4abc6a-dcaa-458e-bf0f-c556584bc641'; // React: State and Props
 // ─────────────────────────────────────────────────────────────
 
 async function main() {

@@ -16,6 +16,8 @@ import { QuestionModule } from './module/questions/question.module';
 import { AssessmentModule } from './module/assessments/assessment.module';
 import { AssessmentSubmissionModule } from './module/assessmentSubmission/assessmentSubmission.module';
 import { AdminModule } from './module/admin/admin.module';
+import { CategoryModule } from './module/category/category.module';
+import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { AdminModule } from './module/admin/admin.module';
     AssessmentModule,
     AssessmentSubmissionModule,
     AdminModule,
+    CategoryModule,
+    CloudinaryModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

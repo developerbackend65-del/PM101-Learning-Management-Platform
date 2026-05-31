@@ -67,6 +67,15 @@ export class CourseRepository {
     });
   }
 
+  findByIdAndAdminId(id: string, adminId: string) {
+    return this.prisma.course.findUnique({
+      where: {
+        id,
+        adminId,
+      },
+    });
+  }
+
   countAllCourses() {
     return this.prisma.course.count();
   }
@@ -135,6 +144,19 @@ export class CourseRepository {
           },
         },
       },
+    });
+  }
+
+  async create(data: Prisma.CourseCreateInput) {
+    return this.prisma.course.create({
+      data,
+    });
+  }
+
+  async update(id: string, data: Prisma.CourseUpdateInput) {
+    return this.prisma.course.update({
+      where: { id },
+      data,
     });
   }
 }

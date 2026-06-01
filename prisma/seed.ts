@@ -1,4 +1,8 @@
-import { PrismaClient, UserRole } from '../generated/prisma/client';
+import {
+  CourseLevel,
+  PrismaClient,
+  UserRole,
+} from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const prisma = new PrismaClient({
@@ -24,7 +28,7 @@ async function main() {
       description: 'Learn JavaScript from scratch',
       thumbnailUrl: 'https://img.youtube.com/vi/W6NZfCO5SIk/maxresdefault.jpg',
       duration: 600,
-      level: 'Beginner',
+      level: CourseLevel.BEGINNER,
       price: 0,
       adminId: admin.id,
       modules: {
@@ -106,7 +110,7 @@ async function main() {
       description: 'Learn HTML and CSS for beginners',
       thumbnailUrl: 'https://img.youtube.com/vi/mU6anWqZJcc/maxresdefault.jpg',
       duration: 720,
-      level: 'Beginner',
+      level: CourseLevel.BEGINNER,
       price: 0,
       adminId: admin.id,
       modules: {
@@ -188,7 +192,7 @@ async function main() {
       description: 'Learn Node.js fundamentals',
       thumbnailUrl: 'https://img.youtube.com/vi/TlB_eWDSMt4/maxresdefault.jpg',
       duration: 800,
-      level: 'Intermediate',
+      level: CourseLevel.INTERMEDIATE,
       price: 0,
       adminId: admin.id,
       modules: {
@@ -270,7 +274,7 @@ async function main() {
       description: 'Learn React from scratch',
       thumbnailUrl: 'https://img.youtube.com/vi/bMknfKXIFA8/maxresdefault.jpg',
       duration: 900,
-      level: 'Intermediate',
+      level: CourseLevel.INTERMEDIATE,
       price: 0,
       adminId: admin.id,
       modules: {

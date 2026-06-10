@@ -1,6 +1,14 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Match } from '../decorator/match.decorator';
+import { Gender } from 'generated/prisma/enums';
 
 export class RegisterUserDto {
   @ApiProperty({
@@ -35,4 +43,17 @@ export class RegisterUserDto {
     message: 'Password confirmation does not match the entered password',
   })
   confirmPassword: string;
+
+  @ApiProperty({
+    description: 'Gender of the user',
+    enum: Gender,
+  })
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @ApiProperty({
+    description: 'Date of birth in ISO 8601 format (YYYY-MM-DD)',
+  })
+  @IsDateString()
+  date_of_birth: string;
 }

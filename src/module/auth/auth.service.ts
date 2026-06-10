@@ -54,7 +54,7 @@ export class AuthService {
    * // { message: 'Verification email sent successfully. Please check your inbox.' }
    */
   public async register(dto: RegisterUserDto) {
-    const { name, email, password } = dto;
+    const { name, email, password, date_of_birth, gender } = dto;
 
     const user = await this.userRepo.findByEmail(email);
     if (user)
@@ -72,6 +72,8 @@ export class AuthService {
           name,
           password_hash,
           email,
+          date_of_birth,
+          gender,
         },
         tx,
       );

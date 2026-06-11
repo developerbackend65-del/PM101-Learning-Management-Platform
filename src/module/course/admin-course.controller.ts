@@ -28,6 +28,9 @@ import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { UserRole } from 'generated/prisma/enums';
+import { RolesGuard } from 'src/shared/guards/role.guard';
+import { PermissionGuard } from 'src/shared/guards/permission.guard';
+import { RequirePermission } from 'src/shared/decorators/require-permission.decorator';
 
 const fileInterceptor = FileInterceptor('thumbnail', {
   storage: memoryStorage(),
@@ -35,14 +38,15 @@ const fileInterceptor = FileInterceptor('thumbnail', {
 });
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Roles(UserRole.Admin)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 @ApiTags('Admin - Courses')
 @Controller('admin/courses')
 export class AdminCourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post()
+  @RequirePermission('manage_courses')
   @UseInterceptors(fileInterceptor)
   @ApiOperation({ summary: 'Create a new course with a thumbnail image' })
   @ApiConsumes('multipart/form-data')
@@ -57,6 +61,7 @@ export class AdminCourseController {
   }
 
   @Patch(':id')
+  @RequirePermission('manage_courses')
   @UseInterceptors(fileInterceptor)
   @ApiOperation({ summary: 'Update an existing course by ID' })
   @ApiConsumes('multipart/form-data')

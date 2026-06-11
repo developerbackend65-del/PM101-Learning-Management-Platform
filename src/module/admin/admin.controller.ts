@@ -32,18 +32,21 @@ import { RolesGuard } from 'src/shared/guards/role.guard';
 import { UserRole } from 'generated/prisma/enums';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PermissionGuard } from 'src/shared/guards/permission.guard';
+import { RequirePermission } from 'src/shared/decorators/require-permission.decorator';
 
 @ApiTags('Admin Analytics')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT token' })
 @ApiForbiddenResponse({ description: 'Requires Admin role' })
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.Admin)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('analytics/overview')
+  @RequirePermission('view_analytics')
   @ApiOperation({
     summary: 'Get dashboard overview stats',
     description:
@@ -58,6 +61,7 @@ export class AdminController {
   }
 
   @Get('analytics/enrollments-over-time')
+  @RequirePermission('view_analytics')
   @ApiOperation({
     summary: 'Get enrollment count over a date range',
     description:
@@ -91,6 +95,7 @@ export class AdminController {
   }
 
   @Get('analytics/revenue-over-time')
+  @RequirePermission('view_analytics')
   @ApiOperation({
     summary: 'Get total revenue over a date range',
     description:
@@ -124,6 +129,7 @@ export class AdminController {
   }
 
   @Get('analytics/popular-courses')
+  @RequirePermission('view_analytics')
   @ApiOperation({
     summary: 'Get most popular courses by enrollment',
     description:
@@ -150,6 +156,7 @@ export class AdminController {
   }
 
   @Get('users')
+  @RequirePermission('manage_users')
   @ApiOperation({ summary: 'Get all users' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
@@ -168,6 +175,7 @@ export class AdminController {
   }
 
   @Get('users/:id')
+  @RequirePermission('manage_users')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({
@@ -179,6 +187,7 @@ export class AdminController {
   }
 
   @Patch('users/:id')
+  @RequirePermission('manage_users')
   @ApiOperation({ summary: 'Update user profile' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({
@@ -194,6 +203,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/ban')
+  @RequirePermission('manage_users')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Ban a user' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
@@ -209,6 +219,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/unban')
+  @RequirePermission('manage_users')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unban a user' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
@@ -224,6 +235,7 @@ export class AdminController {
   }
 
   @Delete('users/:id')
+  @RequirePermission('manage_users')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft-delete a user' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })

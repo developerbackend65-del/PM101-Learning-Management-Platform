@@ -23,8 +23,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { LearningPathService } from './learningPath.service';
+import { PermissionGuard } from 'src/shared/guards/permission.guard';
+import { RequirePermission } from 'src/shared/decorators/require-permission.decorator';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth()
 @Controller('learning-paths')
 export class LearningPathsController {
@@ -32,7 +34,8 @@ export class LearningPathsController {
 
   //@route   Post ~/learning-paths
   @Post()
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermission('manage_learning_paths')
   @ApiOperation({
     summary: 'Create a learning path',
     description:

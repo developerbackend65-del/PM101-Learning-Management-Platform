@@ -24,16 +24,20 @@ import { ReorderModuleDto } from './dto/reorder-course-module.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { UserRole } from '../../../generated/prisma/enums';
+import { RolesGuard } from 'src/shared/guards/role.guard';
+import { PermissionGuard } from 'src/shared/guards/permission.guard';
+import { RequirePermission } from 'src/shared/decorators/require-permission.decorator';
 
 @ApiTags('Admin — Modules')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Roles(UserRole.Admin)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 @Controller('admin')
 export class AdminCourseModuleController {
   constructor(private readonly courseModuleService: CourseModuleService) {}
 
   @Post('courses/:courseId/modules')
+  @RequirePermission('manage_content')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a module',
@@ -70,6 +74,7 @@ export class AdminCourseModuleController {
   }
 
   @Patch('modules/:moduleId')
+  @RequirePermission('manage_content')
   @ApiOperation({
     summary: 'Update a module',
     description:
@@ -105,6 +110,7 @@ export class AdminCourseModuleController {
   }
 
   @Delete('modules/:moduleId')
+  @RequirePermission('manage_content')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete a module',
@@ -136,6 +142,7 @@ export class AdminCourseModuleController {
   }
 
   @Patch('modules/:moduleId/reorder')
+  @RequirePermission('manage_content')
   @ApiOperation({
     summary: 'Reorder a module',
     description:

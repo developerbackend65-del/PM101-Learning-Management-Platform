@@ -16,7 +16,7 @@ async function main() {
       name: 'Admin User',
       email: 'admin@test.com',
       password_hash: 'hashed_password',
-      role: UserRole.Admin,
+      role: UserRole.SUPER_ADMIN,
       is_verified: true,
     },
   });

@@ -28,13 +28,13 @@ import {
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.STUDENT)
 @Controller('enrollments')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
   //@route   Post ~/enrollments/:courseId
   @Post(':courseId')
-  @Roles(UserRole.STUDENT)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Enroll in a course',
@@ -63,7 +63,6 @@ export class EnrollmentController {
 
   //@route   Get ~/enrollments/my-courses
   @Get('my-courses')
-  @Roles(UserRole.STUDENT)
   @ApiOperation({
     summary: 'Get my enrolled courses',
     description:

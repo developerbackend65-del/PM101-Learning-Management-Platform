@@ -19,6 +19,8 @@ import { AdminModule } from './module/admin/admin.module';
 import { CategoryModule } from './module/category/category.module';
 import { CloudinaryModule } from './shared/cloudinary/cloudinary.module';
 import { CourseModuleModule } from './module/course-module/course-module.module';
+import { AdminPermissionModule } from './module/admin-permission/admin-permission.module';
+import { PermissionModule } from './module/permission/permission.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { CourseModuleModule } from './module/course-module/course-module.module'
     CategoryModule,
     CloudinaryModule,
     CourseModuleModule,
+    AdminPermissionModule,
+    PermissionModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

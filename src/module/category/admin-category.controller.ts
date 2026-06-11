@@ -25,10 +25,11 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { UserRole } from 'generated/prisma/enums';
+import { RolesGuard } from 'src/shared/guards/role.guard';
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Roles(UserRole.Admin)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @ApiTags('Admin - Categories')
 @Controller('admin/categories')
 export class AdminCategoryController {

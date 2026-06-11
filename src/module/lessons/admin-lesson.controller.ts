@@ -24,16 +24,20 @@ import { ReorderLessonDto } from './dto/reorder-lesson.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { Roles } from 'src/shared/decorators/role.decorator';
 import { UserRole } from '../../../generated/prisma/enums';
+import { RolesGuard } from 'src/shared/guards/role.guard';
+import { PermissionGuard } from 'src/shared/guards/permission.guard';
+import { RequirePermission } from 'src/shared/decorators/require-permission.decorator';
 
 @ApiTags('Admin — Lessons')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Roles(UserRole.Admin)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 @Controller('admin')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
   @Post('modules/:moduleId/lessons')
+  @RequirePermission('manage_content')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a lesson',
@@ -70,6 +74,7 @@ export class LessonController {
   }
 
   @Patch('lessons/:id')
+  @RequirePermission('manage_content')
   @ApiOperation({
     summary: 'Update a lesson',
     description:
@@ -102,6 +107,7 @@ export class LessonController {
   }
 
   @Delete('lessons/:id')
+  @RequirePermission('manage_content')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete a lesson',
@@ -133,6 +139,7 @@ export class LessonController {
   }
 
   @Patch('lessons/:id/reorder')
+  @RequirePermission('manage_content')
   @ApiOperation({
     summary: 'Reorder a lesson',
     description:

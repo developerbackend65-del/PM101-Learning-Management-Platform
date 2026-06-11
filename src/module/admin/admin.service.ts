@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,7 +8,13 @@ import { CourseRepository } from '../course/course.repository';
 import { EnrollmentRepository } from '../enrollments/enrollment.repository';
 import { UserRepository } from '../user/user.repository';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { USER_STATUS } from 'generated/prisma/enums';
+import { USER_STATUS, UserRole } from 'generated/prisma/enums';
+import { CreateSubAdminDto } from './dto/create-sub-admin.dto';
+import { PermissionRepository } from '../permission/permission.repository';
+import * as bcrypt from 'bcrypt';
+import { UpdatePermissionsDto } from './dto/update-permission.dto';
+import { AdminPermissionRepository } from '../admin-permission/admin-permission.repository';
+import { TransactionPort } from '../db/transaction/transaction.port';
 
 @Injectable()
 export class AdminService {
@@ -15,6 +22,9 @@ export class AdminService {
     private readonly courseRepo: CourseRepository,
     private readonly enrollmentRepo: EnrollmentRepository,
     private readonly userRepo: UserRepository,
+    private readonly permissionRepo: PermissionRepository,
+    private readonly adminPermissionRepo: AdminPermissionRepository,
+    private readonly transaction: TransactionPort,
   ) {}
 
   /**
@@ -261,5 +271,132 @@ export class AdminService {
 
     await this.userRepo.deleteUser(id);
     return { message: 'User deleted successfully' };
+  }
+
+  /**
+   * Creates a new sub-admin user with the specified permissions.
+   *
+   * @param dto - The data transfer object containing sub-admin details and permission IDs
+   * @returns A success message upon successful creation
+   *
+   * @throws {ConflictException} If a user with the given email already exists
+   * @throws {BadRequestException} If any of the provided permission IDs are invalid
+   *
+   * @example
+   * await create({
+   *   name: 'John Doe',
+   *   email: 'john@example.com',
+   *   password: 'securePass123',
+   *   gender: Gender.MALE,
+   *   date_of_birth: new Date('1990-01-01'),
+   *   permissionIds: ['clx1...', 'clx2...'],
+   * });
+   */
+  async create(dto: CreateSubAdminDto) {
+    const { email, name, password, gender, date_of_birth, permissionIds } = dto;
+
+    const existingUser = await this.userRepo.findByEmail(email);
+
+    if (existingUser) {
+      throw new ConflictException(`Email ${dto.email} is already in use`);
+    }
+
+    const permissions = await this.permissionRepo.findWithIds(permissionIds);
+
+    if (permissions.length !== permissionIds.length) {
+      throw new BadRequestException('One or more permission IDs are invalid');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await this.userRepo.createUser({
+      name,
+      email,
+      password_hash: hashedPassword,
+      gender,
+      date_of_birth,
+      is_verified: true,
+      role: UserRole.ADMIN,
+      adminPermissions: {
+        create: permissionIds.map((permissionId) => ({
+          permissionId,
+          granted: true,
+        })),
+      },
+    });
+
+    return { message: 'admin created successfully' };
+  }
+
+  /**
+   * Retrieves a list of all active sub-admins with their assigned permissions.
+   *
+   * @returns List of sub-admins
+   */
+  async findAll() {
+    const subAdmins = await this.userRepo.allAdmin();
+
+    return { data: subAdmins };
+  }
+
+  /**
+   * Updates the granted status for specific permissions of a sub-admin.
+   * Upserts each permission — creates if not exists, updates granted if it does.
+   *
+   * @param adminId - The sub-admin user ID
+   * @param dto - Contains array of { permissionId, granted } pairs
+   * @returns Updated sub-admin data
+   *
+   * @throws {NotFoundException} If no sub-admin with the given ID exists
+   * @throws {BadRequestException} If any of the provided permission IDs are invalid
+   *
+   * @example
+   * await updatePermissions('abc123', {
+   *   permissions: [
+   *     { permissionId: 'clx1...', granted: true },
+   *     { permissionId: 'clx2...', granted: false },
+   *   ],
+   * });
+   */
+  async updatePermissions(adminId: string, dto: UpdatePermissionsDto) {
+    const { permissions } = dto;
+
+    const subAdmin = await this.userRepo.findById(adminId);
+    if (!subAdmin) {
+      throw new NotFoundException(`Sub-admin not found`);
+    }
+
+    const permissionIds = permissions.map((p) => p.permissionId);
+
+    const foundPermissions =
+      await this.permissionRepo.findWithIds(permissionIds);
+
+    if (foundPermissions.length !== permissionIds.length) {
+      throw new BadRequestException('One or more permission IDs are invalid');
+    }
+
+    await this.transaction.run(async (tx) =>
+      Promise.all(
+        permissions.map(({ permissionId, granted }) =>
+          this.adminPermissionRepo.upsert(adminId, permissionId, granted, tx),
+        ),
+      ),
+    );
+
+    return { data: subAdmin };
+  }
+
+  async remove(id: string) {
+    const subAdmin = await this.userRepo.findById(id);
+    if (!subAdmin) {
+      throw new NotFoundException(`Sub-admin not found`);
+    }
+
+    await this.transaction.run(async (tx) => {
+      await this.adminPermissionRepo.deleteMany(id, tx);
+      await this.userRepo.delete(id, tx);
+    });
+
+    return { message: `Sub-admin has been revoked successfully` };
   }
 }

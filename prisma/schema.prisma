@@ -14,7 +14,8 @@ datasource db {
 
 enum UserRole {
   STUDENT
-  Admin
+  SUPER_ADMIN
+  ADMIN
 }
 
 enum Gender {
@@ -89,6 +90,8 @@ model User {
 
   learningPath     LearningPath[]
   submissions      AssessmentSubmission[]
+
+  adminPermissions AdminPermission[]
 
   @@index([email])
   @@index([role])
@@ -346,4 +349,31 @@ model SubmissionAnswer {
 
   @@index([submissionId])
   @@index([questionId])
+}
+
+model AdminPermission {
+  id          String   @id @default(cuid())
+  adminId      String   
+  permissionId String  
+
+  granted     Boolean  @default(true)
+  grantedById String?  
+
+  admin         User    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  permission      Permission    @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([adminId, permissionId]) 
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+
+  adminPermissions AdminPermission[]
+
+  createdAt   DateTime @default(now())
 }

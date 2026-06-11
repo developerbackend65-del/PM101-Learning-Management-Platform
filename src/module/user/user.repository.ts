@@ -46,6 +46,9 @@ export class UserRepository {
       where: {
         id,
       },
+      include: {
+        adminPermissions: true,
+      },
     });
   }
 
@@ -181,5 +184,25 @@ export class UserRepository {
         refresh_token_hash: true,
       },
     });
+  }
+
+  allAdmin() {
+    return this.prisma.user.findMany({
+      where: {
+        role: UserRole.ADMIN,
+      },
+      include: {
+        adminPermissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+  }
+
+  delete(id: string, tx?: TransactionClient) {
+    const client = tx ?? this.prisma;
+    return client.user.delete({ where: { id } });
   }
 }

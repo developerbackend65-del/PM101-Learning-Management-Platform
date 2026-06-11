@@ -26,12 +26,12 @@ import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 @ApiBearerAuth()
 @ApiTags('Lessons')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.STUDENT)
 @Controller('course/:courseId/lesson')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
   @Get(':lessonId')
-  @Roles(UserRole.STUDENT)
   @ApiOperation({
     summary: 'Get a lesson by ID',
     description: 'Retrieves a specific lesson within a course by its ID.',
@@ -60,7 +60,6 @@ export class LessonController {
   }
 
   @Post(':lessonId/completed')
-  @Roles(UserRole.STUDENT)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Complete a lesson',

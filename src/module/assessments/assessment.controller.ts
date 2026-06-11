@@ -21,7 +21,7 @@ export class AssessmentController {
   constructor(private readonly assessmentService: AssessmentService) {}
 
   @Post()
-  @Roles(UserRole.Admin)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Create a new assessment (Admin only)' })
   @ApiResponse({ status: 201, description: 'Assessment created successfully' })
   @ApiResponse({

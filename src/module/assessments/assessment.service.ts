@@ -130,6 +130,15 @@ export class AssessmentService {
       throw new NotFoundException('Assessment not found');
     }
 
+    const answeredIds = dto.answers.map((a) => a.questionId);
+    const allAnswered = assessment.questions.every((q) =>
+      answeredIds.includes(q.id),
+    );
+
+    if (!allAnswered) {
+      throw new BadRequestException('All questions must be answered');
+    }
+
     // 3. Grade each answer
     const gradedAnswers = dto.answers.map((studentAnswer) => {
       const question = assessment.questions.find(
@@ -151,7 +160,7 @@ export class AssessmentService {
     });
 
     const correctCount = gradedAnswers.filter((a) => a.isCorrect).length;
-    const totalCount = assessment.questions.length;
+    const totalCount = dto.answers.length;
     const score = Math.round((correctCount / totalCount) * 100);
 
     const passed = score >= assessment.passingScore;

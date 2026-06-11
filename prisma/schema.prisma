@@ -17,6 +17,11 @@ enum UserRole {
   Admin
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 enum EVENT_TYPE {
   VERIFY_EMAIL
   RESET_PASSWORD
@@ -68,6 +73,9 @@ model User {
   updated_at    DateTime @updatedAt
   
   lastActiveAt    DateTime?
+
+  gender        Gender?
+  date_of_birth DateTime?
 
   status         USER_STATUS  @default(Active)
   deleted_at    DateTime?
